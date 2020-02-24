@@ -9,7 +9,7 @@
  But i tried to get as good results as possible.
  4. I believe some of them can be further to get better results.
  
-###Requirements
+### Requirements
 1. All models were trained and tested in python 3.6      
  ```   Python3
     keras
@@ -49,7 +49,7 @@
     ***0.1***. 
     3 For packages and other requirements, kindly refer to README.md of keras-yolo3-master directory. 
  
-###DataPreperation for Realtime Inference
+### DataPreperation for Realtime Inference
 Since the FashionMnist data set is quite small (28x28) single channels and according to its archive paper
 the objects were trimmed from the images, placed on canvas with white background, inverted colors, converted to 
 grayscale and resized to 28x28.
@@ -68,11 +68,12 @@ and all the leading models are based on WRN(Wide residual nets). But i believe t
 much time and inference also suffers from low speed. 
  
 ###Usage
-* For training kindly run:
+* For training/evaluating kindly run:
   ```shell script
-    python3 fashion_mnist.py
-    python3 fashion_mnist_aug.py (with data augmentations)
-    python3 efffciecnt_fashion_mnist.py
+    python3 fashion_mnist.py -m test/train 
+    python3 fashion_mnist_aug.py -m test/train  (with data augmentations)
+    python3 efffciecnt_fashion_mnist.py -m test/train 
+      default is ***test***
 
    ```  
 * For Realtime Inference from trained models kindly run:
