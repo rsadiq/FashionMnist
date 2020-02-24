@@ -1,13 +1,13 @@
-# FashionMnist Test Attempts for Advertima 
+# FashionMnist 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)
 
 ## Introduction
 1.  This repo contains python3 scripts for training and inference of different CNN based 
  models for fashion objects classification using ```FashionMnist``` Dataset  
  2. I have tried various architectures and finalized few of them to be added to this repo.
- 3. Hyper parameters optimization for all the models is not possible due to limitation of time and resource.
+ 3. Hyper parameters optimization for all the models is not possible due to limitation of time and resources.
  But i tried to get as good results as possible.
- 4. I believe some of them can be further to get better results.
+ 4. I believe some of them can be further tuned to get better results.
  
 ### Requirements
 1. All models were trained and tested in python 3.6      
@@ -34,9 +34,9 @@
     I was able to achieve ***90%*** accuracy.
     2. Trained a little deeper network with increased the number of layers, and filters, used learning rate scheduling, used 
     some data augmentations and i was able to get ***94%*** test accuracy***
-    3. Trained EfficientNet (B0, B3, B5) with various settings. Maximum trained accuracy 
-    was around ***92%***. But i believe that EffcientNet can be further improved by playing with 
-    Hyperparnameters, especially with learning rate. Right now i am using drop learning rate by 20% after every 20 epochs.
+    3. Trained EfficientNet (B0 only for the moment) with various settings. Maximum trained accuracy 
+    was around ***91%***. But i believe that EffcientNet can be further improved by playing with 
+    Hyperparameters, especially with learning rate. Right now i am using drop learning rate by 20% after every 20 epochs.
     ***Note:*** You can install EfficientNet binded with keras via pip install.
  * For ***Object Detection*** task, i used TinyYoloV3. I used most of the default settings for training 
  yolo except for anchors which i modified based on the images. 
@@ -53,15 +53,15 @@
 Learning rate(LR) does play an important role in training of all the models. Choosing initial 
 LR as 0.1 cost me gradient exploding some times.
 * Starting LR = 1e-3 was a good Learning rate.
-* For baseline and deep model, Redcuing LR by monitoring the test loss for 3 consecetive epochs helped to improve the
+* For baseline and deep model, Reducing LR by monitoring the test loss for 3 consecetive epochs helped to improve the
 accuracy.
 * For effcient net I used learning rate decay after very 20 epoch instead of just monitoring the
 test loss.
 
 Batch Size doesnot effect the performance very much. I used 64, 128 and 256 batch sizes and 
-with 128 i get early v slightly better perfromance.
+with 128 i get early v slightly better performance.
 
-Batch Normaalization is very Important and it helped.
+Batch Normalization is very Important and it helped.
 
 Going further deeper in terms of layers and filters didnt help. 
 
@@ -114,17 +114,17 @@ All the trained models can be downloaded from the following
 [My Google drive Link](https://drive.google.com/drive/folders/1TQLOhaHcTHXYdCyiXYL6vveVDw28s1iz?usp=sharing).
 * kindly place them in the root directory of the project 
 * for Yolo, kindly place the ***ep006-loss0.039-val_loss0.042.h5*** model file under 
-proejct's ***keras-yolo3-master/model_data/*** directory 
+proejct's ***keras-yolo3-master/model_data/*** directory.
 
 
 ### Limitations
 Althoguh i was able to get above ***90%*** test accuracy for all models, i was unable to get
 decent results on videos and webcam feeds. The main reason is the representation of training data.
 Since it is built only for benchmarking purpose, it can still not represent the real world images with whole lot of objects
-with various artifects and outliers.
-* Right now i have seperate CLI for each method.
+with various artifacts and outliers.
+* Right now i have separate CLI for each method.
 * Todo:
     * Code cleaning and creating classes
     * Merging all modules under a single CLI using arguemts.
-    * Further tunning of efficientnets
+    * Further tuning of efficientnets
  
