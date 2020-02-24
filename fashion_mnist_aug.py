@@ -105,7 +105,13 @@ if args['test_train'] == 'train':
                                   patience=3, min_lr=1e-10, verbose=1, cooldown=2)
 
     # opt = SGD(lr=INIT_LR, momentum=0.9, decay=INIT_LR / NUM_EPOCHS)
-    model = CNNmodels.Deep_with_BN(width=28, height=28, depth=1, classes=10)
+
+    if args["model"] == 'deep':
+        model = CNNmodels.Deep_with_BN(width=28, height=28, depth=1, classes=10)
+    elif args["model"] == 'base':
+        model = CNNmodels.baseline_one_layer(width=28, height=28, depth=1, classes=10)
+
+
     model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
     print(model.summary())
 
@@ -118,8 +124,12 @@ if args['test_train'] == 'train':
     H_Aug = model.fit_generator(train_generator,steps_per_epoch = int(len(trainX)/BS),epochs = NUM_EPOCHS,
                                 shuffle=True,validation_data=(testX,testY),callbacks=[lrate_decay],verbose=2)
     # make predictions on the test set
-    model.save("Aug_BN_model1.h5")
-     # plot the training loss and accuracy
+    if args["model"] == 'deep':
+        model.save("Aug_deep_model1.h5")
+    elif args["model"] == 'base':
+        model.save("Aug_base_model1.h5")
+
+    # plot the training loss and accuracy
     # N = NUM_EPOCHS
     # plt.style.use("ggplot")
     # plt.figure()
@@ -135,7 +145,10 @@ if args['test_train'] == 'train':
     # plt.show()
 elif args['test_train'] == 'test':
     print('Loading Model')
-    model = load_model('BN_model1.h5')
+    if args["model"] == 'deep':
+        model = load_model('Aug_deep_model1.h5')
+    elif args["model"] == 'base':
+        model = load_model('Aug_base_model1.h5')
 
     preds = model.predict(testX)
     print("Test_Accuracy(after augmentation): {:.2f}%".format(model.evaluate_generator(test_generator, steps = len(testX), verbose = 2)[1]*100))

@@ -27,7 +27,7 @@ from My_Fash_Models import Models as CNNmodels
 ap = argparse.ArgumentParser()
 ap.add_argument("-m", "--test_train",choices=['train','test'],default='test',
                 help="Train or Evaluate the pretrained model")
-ap.add_argument("-w", "--model", default='deep',choices=['base','deep'],
+ap.add_argument("-c", "--model", default='deep',choices=['base','deep'],
                 help="Which model to use for training and testing")
 args = vars(ap.parse_args())
 
@@ -75,24 +75,25 @@ labelNames = ["top", "trouser", "pullover", "dress", "coat",
 	"sandal", "shirt", "sneaker", "bag", "ankle boot"]
 
 # initialize the optimizer and model
-opt = Adam(lr=INIT_LR)
-# opt = SGD(lr=INIT_LR, momentum=0.9, decay=INIT_LR / NUM_EPOCHS)
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
-                              patience=3, min_lr=0.000001, verbose=1, cooldown=2)
-lrate_decay = LearningRateScheduler(step_decay)
 
 # opt = SGD(lr=INIT_LR, momentum=0.9, decay=INIT_LR / NUM_EPOCHS)
 if args['test_train'] == 'train':
-		model = CNNmodels.Deep_with_BN(width=28, height=28, depth=1, classes=10)
+		opt = Adam(lr=INIT_LR)
+		# opt = SGD(lr=INIT_LR, momentum=0.9, decay=INIT_LR / NUM_EPOCHS)
+		reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
+									  patience=3, min_lr=0.000001, verbose=1, cooldown=2)
+		lrate_decay = LearningRateScheduler(step_decay)
+
+		model = CNNmodels.baseline_one_layer(width=28, height=28, depth=1, classes=10)
 		model.compile(loss="categorical_crossentropy", optimizer=opt,metrics=["accuracy"])
 
 		# train the network
 		print("[INFO] training model...")
 		H = model.fit(trainX, trainY, verbose=2,
 			validation_data=(testX, testY),
-			batch_size=BS, epochs=NUM_EPOCHS,callbacks=[lrate_decay])
+			batch_size=BS, epochs=NUM_EPOCHS,callbacks=[reduce_lr])
 
-		model.save("BN_model1.h5")
+		model.save("Baseline1.h5")
 		# plot the training loss and accuracy
 		# N = NUM_EPOCHS
 		# plt.style.use("ggplot")
@@ -109,7 +110,11 @@ if args['test_train'] == 'train':
 
 elif args['test_train'] == 'test':
 	print('Loading Model')
-	model = load_model('BN_model1.h5')
+	if args["model"] == 'deep':
+		model = load_model('Deep_model.h5')
+	elif args["model"] == 'base':
+		model = load_model('Baseline1.h5')
+
 		# make predictions on the test set
 	preds = model.predict(testX)
 
