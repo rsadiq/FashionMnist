@@ -1,0 +1,9 @@
+# ignore all logs
+*.log
+# ignore the modelfiles
+*.h5
+# ignore git files
+.git/*
+# ignore any media file
+*.mp4
+*.avi
