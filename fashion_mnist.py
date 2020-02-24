@@ -9,6 +9,9 @@ matplotlib.use("Agg")
 from sklearn.metrics import classification_report
 from keras.optimizers import SGD,Adam
 from keras.datasets import fashion_mnist
+from keras.models import load_model
+
+import argparse
 from keras.utils import np_utils
 from keras import backend as K
 from keras.callbacks import ReduceLROnPlateau,LearningRateScheduler
@@ -21,6 +24,12 @@ config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 from My_Fash_Models import Models as CNNmodels
 
+ap = argparse.ArgumentParser()
+ap.add_argument("-m", "--test_train",choices=['train','test'],default='test',
+                help="Train or Evaluate the pretrained model")
+ap.add_argument("-w", "--model", default='deep',choices=['base','deep'],
+                help="Which model to use for training and testing")
+args = vars(ap.parse_args())
 
 def step_decay(epoch):
    initial_lrate = 1e-3
@@ -69,42 +78,47 @@ labelNames = ["top", "trouser", "pullover", "dress", "coat",
 opt = Adam(lr=INIT_LR)
 # opt = SGD(lr=INIT_LR, momentum=0.9, decay=INIT_LR / NUM_EPOCHS)
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
-                              patience=3, min_lr=0.000001, verbose=1, cooldown=1)
+                              patience=3, min_lr=0.000001, verbose=1, cooldown=2)
 lrate_decay = LearningRateScheduler(step_decay)
 
 # opt = SGD(lr=INIT_LR, momentum=0.9, decay=INIT_LR / NUM_EPOCHS)
-model = CNNmodels.Deep_with_BN(width=28, height=28, depth=1, classes=10)
-model.compile(loss="categorical_crossentropy", optimizer=opt,metrics=["accuracy"])
+if args['test_train'] == 'train':
+		model = CNNmodels.Deep_with_BN(width=28, height=28, depth=1, classes=10)
+		model.compile(loss="categorical_crossentropy", optimizer=opt,metrics=["accuracy"])
 
-# train the network
-print("[INFO] training model...")
-H = model.fit(trainX, trainY, verbose=2,
-	validation_data=(testX, testY),
-	batch_size=BS, epochs=NUM_EPOCHS,callbacks=[lrate_decay])
+		# train the network
+		print("[INFO] training model...")
+		H = model.fit(trainX, trainY, verbose=2,
+			validation_data=(testX, testY),
+			batch_size=BS, epochs=NUM_EPOCHS,callbacks=[lrate_decay])
+
+		model.save("BN_model1.h5")
+		# plot the training loss and accuracy
+		# N = NUM_EPOCHS
+		# plt.style.use("ggplot")
+		# plt.figure()
+		# plt.plot(np.arange(0, N), H.history["loss"], label="train_loss")
+		# plt.plot(np.arange(0, N), H.history["val_loss"], label="val_loss")
+		# plt.plot(np.arange(0, N), H.history["acc"], label="train_acc")
+		# plt.plot(np.arange(0, N), H.history["val_acc"], label="val_acc")
+		# plt.title("Training Loss and Accuracy on Dataset")
+		# plt.xlabel("Epoch #")
+		# plt.ylabel("Loss/Accuracy")
+		# plt.legend(loc="lower left")
+		# plt.savefig("plot.png")
+
+elif args['test_train'] == 'test':
+	print('Loading Model')
+	model = load_model('BN_model1.h5')
+		# make predictions on the test set
+	preds = model.predict(testX)
+
+	# show a nicely formatted classification report
+	print("[INFO] evaluating network...")
+	print(classification_report(testY.argmax(axis=1), preds.argmax(axis=1),
+		target_names=labelNames))
 
 
-# make predictions on the test set
-preds = model.predict(testX)
-
-# show a nicely formatted classification report
-print("[INFO] evaluating network...")
-print(classification_report(testY.argmax(axis=1), preds.argmax(axis=1),
-	target_names=labelNames))
-model.save("BN_model1.h5")
-
-# plot the training loss and accuracy
-# N = NUM_EPOCHS
-# plt.style.use("ggplot")
-# plt.figure()
-# plt.plot(np.arange(0, N), H.history["loss"], label="train_loss")
-# plt.plot(np.arange(0, N), H.history["val_loss"], label="val_loss")
-# plt.plot(np.arange(0, N), H.history["acc"], label="train_acc")
-# plt.plot(np.arange(0, N), H.history["val_acc"], label="val_acc")
-# plt.title("Training Loss and Accuracy on Dataset")
-# plt.xlabel("Epoch #")
-# plt.ylabel("Loss/Accuracy")
-# plt.legend(loc="lower left")
-# plt.savefig("plot.png")
 #
 # # initialize our list of output images
 # images = []

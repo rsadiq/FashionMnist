@@ -4,13 +4,22 @@ from keras.optimizers import SGD, Adam
 from keras.datasets import fashion_mnist
 from keras.utils import np_utils
 from keras import backend as K
+from keras.models import load_model
 # import the necessary packages
 from keras.callbacks import ReduceLROnPlateau,ModelCheckpoint,LearningRateScheduler
 from keras.preprocessing.image import ImageDataGenerator
 import math
-from imutils import build_montages
+# from imutils import build_montages
 import matplotlib.pyplot as plt
 import numpy as np
+import argparse
+ap = argparse.ArgumentParser()
+ap.add_argument("-m", "--test_train",choices=['train','test'],default='test',
+                help="Train or Evaluate the pretrained model")
+ap.add_argument("-w", "--model", default='deep',choices=['base','deep'],
+                help="Which model to use for training and testing")
+args = vars(ap.parse_args())
+
 import tensorflow as tf
 from tensorflow.compat.v1 import InteractiveSession
 
@@ -87,45 +96,51 @@ testX = testX.astype("float32") / 255.0
 
 # initialize the optimizer and model
 # opt = Adam(lr=INIT_LR)
-opt = SGD(lr = INIT_LR,momentum=0.9,decay=0)
-lrate_decay = LearningRateScheduler(step_decay)
+if args['test_train'] == 'train':
 
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
-                              patience=3, min_lr=1e-10, verbose=1, cooldown=2)
+    opt = SGD(lr = INIT_LR,momentum=0.9,decay=0)
+    lrate_decay = LearningRateScheduler(step_decay)
 
-# opt = SGD(lr=INIT_LR, momentum=0.9, decay=INIT_LR / NUM_EPOCHS)
-model = CNNmodels.Deep_with_BN(width=28, height=28, depth=1, classes=10)
-model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
-print(model.summary())
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1,
+                                  patience=3, min_lr=1e-10, verbose=1, cooldown=2)
 
-# train the network
-print("[INFO] training model...")
-# print(len(trainX)/BS)
-# H = model.fit_generator(train_generator.flow(trainX, trainY, batch_size=BS),
-# 	validation_data=(testX, testY), steps_per_epoch=len(trainX) // BS,
-# 	epochs=NUM_EPOCHS,callbacks=[reduce_lr],verbose=1)
-H_Aug = model.fit_generator(train_generator,steps_per_epoch = int(len(trainX)/BS),epochs = NUM_EPOCHS,
-                            shuffle=True,validation_data=(testX,testY),callbacks=[lrate_decay],verbose=2)
-# make predictions on the test set
-preds = model.predict(testX)
-print("Test_Accuracy(after augmentation): {:.2f}%".format(model.evaluate_generator(test_generator, steps = len(testX), verbose = 2)[1]*100))
-# show a nicely formatted classification report
-print("[INFO] evaluating network...")
-print(classification_report(testY.argmax(axis=1), preds.argmax(axis=1),
-                            target_names=labelNames))
-model.save("Aug_BN_model1.h5")
+    # opt = SGD(lr=INIT_LR, momentum=0.9, decay=INIT_LR / NUM_EPOCHS)
+    model = CNNmodels.Deep_with_BN(width=28, height=28, depth=1, classes=10)
+    model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
+    print(model.summary())
 
- # plot the training loss and accuracy
-N = NUM_EPOCHS
-plt.style.use("ggplot")
-plt.figure()
-plt.plot(np.arange(0, N), H_Aug.history["loss"], label="train_loss")
-plt.plot(np.arange(0, N), H_Aug.history["val_loss"], label="val_loss")
-plt.plot(np.arange(0, N), H_Aug.history["acc"], label="train_acc")
-plt.plot(np.arange(0, N), H_Aug.history["val_acc"], label="val_acc")
-plt.title("Training Loss and Accuracy on Dataset")
-plt.xlabel("Epoch #")
-plt.ylabel("Loss/Accuracy")
-plt.legend(loc="lower left")
-plt.savefig("loss_Aug_plot2.png")
-plt.show()
+    # train the network
+    print("[INFO] training model...")
+    # print(len(trainX)/BS)
+    # H = model.fit_generator(train_generator.flow(trainX, trainY, batch_size=BS),
+    # 	validation_data=(testX, testY), steps_per_epoch=len(trainX) // BS,
+    # 	epochs=NUM_EPOCHS,callbacks=[reduce_lr],verbose=1)
+    H_Aug = model.fit_generator(train_generator,steps_per_epoch = int(len(trainX)/BS),epochs = NUM_EPOCHS,
+                                shuffle=True,validation_data=(testX,testY),callbacks=[lrate_decay],verbose=2)
+    # make predictions on the test set
+    model.save("Aug_BN_model1.h5")
+     # plot the training loss and accuracy
+    # N = NUM_EPOCHS
+    # plt.style.use("ggplot")
+    # plt.figure()
+    # plt.plot(np.arange(0, N), H_Aug.history["loss"], label="train_loss")
+    # plt.plot(np.arange(0, N), H_Aug.history["val_loss"], label="val_loss")
+    # plt.plot(np.arange(0, N), H_Aug.history["acc"], label="train_acc")
+    # plt.plot(np.arange(0, N), H_Aug.history["val_acc"], label="val_acc")
+    # plt.title("Training Loss and Accuracy on Dataset")
+    # plt.xlabel("Epoch #")
+    # plt.ylabel("Loss/Accuracy")
+    # plt.legend(loc="lower left")
+    # plt.savefig("loss_Aug_plot2.png")
+    # plt.show()
+elif args['test_train'] == 'test':
+    print('Loading Model')
+    model = load_model('BN_model1.h5')
+
+    preds = model.predict(testX)
+    print("Test_Accuracy(after augmentation): {:.2f}%".format(model.evaluate_generator(test_generator, steps = len(testX), verbose = 2)[1]*100))
+    # show a nicely formatted classification report
+    print("[INFO] evaluating network...")
+    print(classification_report(testY.argmax(axis=1), preds.argmax(axis=1),
+                                target_names=labelNames))
+
